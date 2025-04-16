@@ -12,7 +12,8 @@ class Settings(BaseSettings):
     POSTGRES_DB: str
 
     # JWT
-    PUBLIC_KEY: str
+    PRIVATE_KEY: str
+    ALGORITHM: str
 
     DATABASE_URL: Optional[PostgresDsn] = None
 

@@ -2,9 +2,25 @@ from sqlalchemy import Column, Integer, String, DateTime, func
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import declarative_base, Mapped, mapped_column
 from enum import Enum
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 Base = declarative_base()
+
+
+class UserORM(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(nullable=False)
+    surname: Mapped[str] = mapped_column(nullable=False)
+    date_of_birth: Mapped[date] = mapped_column(nullable=False)
+    age: Mapped[int] = mapped_column(nullable=False)
+    username: Mapped[str] = mapped_column(nullable=False)
+    password: Mapped[str] = mapped_column(nullable=False)
+    is_active: Mapped[bool] = mapped_column(default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
 
 
 class TaskStatus(str, Enum):

@@ -1,33 +1,37 @@
 from fastapi import APIRouter, Depends, Query
 
-from src.api.dependencies import get_task_repo
+from src.core.entities.user import User
+from src.core.use_cases.task import TaskUseCases
+from src.api.dependencies import get_current_user, get_task_usecases
 from src.api.schemas.task import (
     Pagination,
     TaskResponse,
-    TaskCreateResponse,
     TaskCreateSchema,
     UpdateTaskSchema,
 )
-from src.core.interfaces.task import ITaskRepository
 from src.core.entities.task import Task
 
 
-router = APIRouter(prefix="/tasks")
+router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
 
 @router.get("/", summary="Получить все таски", response_model=list[TaskResponse])
 async def get_all_tasks(
-    pagination: Pagination = Query(...), repo: ITaskRepository = Depends(get_task_repo)
+    pagination: Pagination = Query(...),
+    use_case: TaskUseCases = Depends(get_task_usecases),
+    current_user: User = Depends(get_current_user),
 ):
-    return await repo.get_all(pagination.limit, pagination.offset)
+    return await use_case.get_all_tasks(pagination.limit, pagination.offset)
 
 
 @router.post("/", summary="Создать задачу", response_model=TaskResponse)
 async def create_task(
-    task: TaskCreateSchema, repo: ITaskRepository = Depends(get_task_repo)
+    task: TaskCreateSchema,
+    use_case: TaskUseCases = Depends(get_task_usecases),
+    current_user: User = Depends(get_current_user),
 ):
     new_task = Task(title=task.title, description=task.description, status=task.status)
-    created_task = await repo.create(new_task)
+    created_task = await use_case.create_task(new_task)
 
     return created_task
 
@@ -35,6 +39,7 @@ async def create_task(
 @router.patch("/", summary="Обновить статус таски", response_model=TaskResponse)
 async def update_status_task(
     update_data: UpdateTaskSchema,
-    repo: ITaskRepository = Depends(get_task_repo),
+    use_case: TaskUseCases = Depends(get_task_usecases),
+    current_user: User = Depends(get_current_user),
 ):
-    return await repo.change_status(update_data.task_id, update_data.status)
+    return await use_case.update_task_status(update_data.task_id, update_data.status)
