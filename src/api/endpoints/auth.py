@@ -6,7 +6,7 @@ from src.api.schemas.auth import (
     UserCreateSchema,
     UserLoginSchema,
 )
-from src.api.dependencies import get_user_usecases
+from src.api.dependencies import get_refresh_token, get_user_usecases
 from src.core.use_cases.user import UserUseCases
 
 
@@ -51,3 +51,14 @@ async def login(
         )
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
+
+
+@router.post("/refresh", summary="Обновление токена", response_model=TokenDataSchema)
+async def refresh(
+    refresh_token: str = Depends(get_refresh_token),
+    use_case: UserUseCases = Depends(get_user_usecases),
+):
+    tokens = await use_case.refresh_token(refresh_token)
+    return TokenDataSchema(
+        access_token=tokens["access_token"], refresh_token=tokens["refresh_token"]
+    )

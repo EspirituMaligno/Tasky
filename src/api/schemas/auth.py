@@ -11,6 +11,7 @@ class AuthResponseModel(BaseModel):
 class TokenDataSchema(BaseModel):
     access_token: str
     refresh_token: str
+    token_type: str = "Bearer"
 
 
 class UserCreateSchema(BaseModel):

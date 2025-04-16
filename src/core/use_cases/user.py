@@ -1,6 +1,10 @@
 from datetime import date
 from fastapi import HTTPException
-from src.core.services.jwt import create_access_token, create_refresh_token
+from src.core.services.jwt import (
+    create_access_token,
+    create_refresh_token,
+    decode_token,
+)
 from src.core.services.age import calculate_age
 from src.core.entities.user import User
 from src.core.interfaces.user import IUserRepository
@@ -56,6 +60,35 @@ class UserUseCases:
         refresh_token = create_refresh_token(
             data={"sub": "tasky", "user_id": existing_user.id}
         )
+
+        return {
+            "access_token": token,
+            "refresh_token": refresh_token,
+        }
+
+    async def refresh_token(self, refresh_token: str) -> dict[str, str]:
+        payload = decode_token(refresh_token)
+
+        if payload.get("type") != "refresh":
+            raise HTTPException(
+                status_code=401, detail="Invalid token type. Expected refresh token"
+            )
+
+        user_id = payload.get("user_id")
+
+        if not user_id:
+            raise HTTPException(
+                status_code=401, detail="Could not validate credentials"
+            )
+
+        user = await self.repo.get_user_by_id(user_id)
+
+        if not user:
+            raise HTTPException(status_code=400, detail="User not found")
+
+        token = create_access_token(data={"sub": "tasky", "user_id": user_id})
+
+        refresh_token = create_refresh_token(data={"sub": "tasky", "user_id": user_id})
 
         return {
             "access_token": token,

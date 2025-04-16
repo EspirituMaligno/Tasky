@@ -61,3 +61,10 @@ async def get_current_user(
         is_active=user_orm.is_active,
         created_at=user_orm.created_at,
     )
+
+
+async def get_refresh_token(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    repo: IUserRepository = Depends(get_user_repo),
+) -> dict[str, str]:
+    return credentials.credentials
